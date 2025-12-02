@@ -3,6 +3,7 @@ from typing import Any, Dict
 from uuid import UUID
 import json
 import os
+from io import BytesIO
 
 from dotenv import load_dotenv
 from PyPDF2 import PdfReader
@@ -26,8 +27,12 @@ openai.api_key = os.getenv("OPENAI_API_KEY", "")
 
 def parse_pdf(path: str, document_id: str, email: str) -> Dict[str, Any]:
   """
-  RQ job that reads a PDF from disk, stores its raw text, and enqueues a
-  follow-up job to extract key information.
+  RQ job that reads a PDF, stores its raw text, and enqueues a follow-up job
+  to extract key information.
+
+  In production (Railway), the API and worker run in separate containers with
+  separate filesystems, so the worker cannot rely on the on-disk path written
+  by the API. Instead, we always read the PDF bytes from Postgres.
 
   Returns:
     {
@@ -35,11 +40,18 @@ def parse_pdf(path: str, document_id: str, email: str) -> Dict[str, Any]:
       "content": { "raw_text": "..." }
     }
   """
-  pdf_path = Path(path)
-  if not pdf_path.exists():
-    raise FileNotFoundError(f"PDF not found at: {pdf_path}")
+  db = SessionLocal()
+  try:
+    doc_uuid = UUID(document_id)
+    document = db.get(Document, doc_uuid)
+    if document is None:
+      raise FileNotFoundError(f"Document {document_id} not found in database.")
 
-  reader = PdfReader(str(pdf_path))
+    pdf_bytes = document.content
+  finally:
+    db.close()
+
+  reader = PdfReader(BytesIO(pdf_bytes))
   text_parts: list[str] = []
 
   for page in reader.pages:
@@ -78,14 +90,6 @@ def parse_pdf(path: str, document_id: str, email: str) -> Dict[str, Any]:
     db.commit()
   finally:
     db.close()
-
-  # Clean up: remove the PDF file from disk after processing
-  try:
-    if pdf_path.exists():
-      pdf_path.unlink()
-  except Exception as e:
-    # Log but don't fail the job if file deletion fails
-    print(f"Warning: Failed to delete PDF file {pdf_path}: {e}")
 
   return {"linked_job": linked_job.id, "content": content_json}
 
