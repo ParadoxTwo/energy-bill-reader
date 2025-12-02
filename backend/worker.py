@@ -1,7 +1,11 @@
 from redis import Redis
 from rq import Connection, Worker, Queue
 
-from .config import get_settings
+# Support both package and script-style imports
+try:
+  from .config import get_settings
+except ImportError:  # when run as a top-level module
+  from config import get_settings
 
 
 def main() -> None:

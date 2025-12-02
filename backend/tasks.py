@@ -11,9 +11,15 @@ from rq import Queue
 from rq.job import get_current_job
 import openai
 
-from .config import get_settings
-from .database import SessionLocal
-from .models import Document, JobResult
+# Support both package and script-style imports
+try:
+  from .config import get_settings
+  from .database import SessionLocal
+  from .models import Document, JobResult
+except ImportError:  # when run as top-level modules
+  from config import get_settings
+  from database import SessionLocal
+  from models import Document, JobResult
 
 
 # Load environment variables from backend/.env when imported (for OPENAI_API_KEY, etc.)

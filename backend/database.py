@@ -1,7 +1,11 @@
 from sqlalchemy import create_engine
 from sqlalchemy.orm import declarative_base, sessionmaker, Session
 
-from .config import get_settings
+# Support both package and script-style imports
+try:
+  from .config import get_settings
+except ImportError:  # when run as a top-level module
+  from config import get_settings
 
 settings = get_settings()
 
