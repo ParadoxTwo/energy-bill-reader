@@ -6,7 +6,8 @@ from sqlalchemy import TIMESTAMP, Column, String, LargeBinary, JSON, ForeignKey
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.sql import func
 
-from .database import Base
+# Run from backend directory; use absolute imports for sibling modules.
+from database import Base
 
 
 class Document(Base):

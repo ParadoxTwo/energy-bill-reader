@@ -1,12 +1,8 @@
 from redis import Redis
 from rq import Connection, Worker, Queue
 
-# Support both package and script-style imports
-try:
-  from .config import get_settings
-except ImportError:  # when run as a top-level module
-  from config import get_settings
-
+# Run from backend directory; use absolute imports for sibling modules.
+from config import get_settings
 
 def main() -> None:
   settings = get_settings()

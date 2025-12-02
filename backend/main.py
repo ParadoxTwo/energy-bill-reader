@@ -8,17 +8,14 @@ from rq import Queue
 from rq.job import Job
 from sqlalchemy.orm import Session
 
-# Support running both as a package (backend.main) and as a script (main)
-try:  # when imported as part of the backend package
-  from .config import get_settings
-  from .database import Base, engine, get_db
-  from .models import Document, JobResult
-  from .tasks import parse_pdf
-except ImportError:  # when run as a top-level module (e.g. uvicorn main:app)
-  from config import get_settings
-  from database import Base, engine, get_db
-  from models import Document, JobResult
-  from tasks import parse_pdf
+# NOTE:
+# In production (Railway), we run with Root Directory = "backend",
+# so this file is executed from the backend folder and we import
+# sibling modules using absolute imports.
+from config import get_settings
+from database import Base, engine, get_db
+from models import Document, JobResult
+from tasks import parse_pdf
 
 settings = get_settings()
 
