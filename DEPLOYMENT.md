@@ -29,9 +29,10 @@ In your Railway project dashboard:
 
 1. Click on your backend service (the one created from GitHub)
 2. Go to **"Settings"** tab
-3. **Important**: Leave **"Root Directory"** empty (or set to `/`) - we run from the project root
-4. The **"Start Command"** should be: `python -m uvicorn backend.main:app --host 0.0.0.0 --port $PORT`
-   - Railway should auto-detect this from `nixpacks.toml`, but you can set it manually if needed
+3. **Important**: Set **"Root Directory"** to: `backend`
+   - This tells Railway to treat this as a Python service and ignore the Node.js files
+4. Set **"Start Command"** to: `python -m uvicorn main:app --host 0.0.0.0 --port $PORT`
+   - Note: When Root Directory is `backend`, use `main:app` not `backend.main:app`
 5. Go to **"Variables"** tab and add:
    ```
    RQ_QUEUE_NAME=pdf-analysis
@@ -46,8 +47,8 @@ In your Railway project dashboard:
 1. In the same Railway project, click **"+ New"** → **"GitHub Repo"**
 2. Select the same repository
 3. In the service settings:
-   - Leave **"Root Directory"** empty (project root)
-   - Set **"Start Command"** to: `python -m backend.worker`
+   - Set **"Root Directory"** to: `backend`
+   - Set **"Start Command"** to: `python -m worker`
 4. Go to **"Variables"** tab and add the same variables as the API service:
    ```
    RQ_QUEUE_NAME=pdf-analysis
@@ -120,12 +121,13 @@ The app currently creates tables automatically. For production, consider using A
 
 ## Troubleshooting
 
-### Backend won't start / "uvicorn: command not found"
+### Backend won't start / "uvicorn: command not found" / Python build conflicts
 
-- Make sure `Root Directory` is **empty** (project root) in Railway settings, NOT set to `backend`
-- Verify that `nixpacks.toml` exists in the project root
-- Check that the Start Command is: `python -m uvicorn backend.main:app --host 0.0.0.0 --port $PORT`
-- Check build logs to ensure `pip install -r backend/requirements.txt` ran successfully
+- Make sure `Root Directory` is set to **`backend`** in Railway settings (NOT empty)
+- When Root Directory is `backend`, use `main:app` in the start command, not `backend.main:app`
+- Check that the Start Command is: `python -m uvicorn main:app --host 0.0.0.0 --port $PORT`
+- Check build logs to ensure `pip install -r requirements.txt` ran successfully
+- If you see conflicts about multiple Python environments, ensure Root Directory is set to `backend` to avoid Node.js detection
 - Check that all environment variables are set correctly
 - Verify PostgreSQL and Redis services are running
 
