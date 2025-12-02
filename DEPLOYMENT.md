@@ -29,10 +29,10 @@ In your Railway project dashboard:
 
 1. Click on your backend service (the one created from GitHub)
 2. Go to **"Settings"** tab
-3. **Important**: Set **"Root Directory"** to: `backend`
-   - This tells Railway to only detect Python and ignore Node.js files, avoiding build conflicts
-4. Set **"Start Command"** to: `python -m uvicorn main:app --host 0.0.0.0 --port $PORT`
-   - Note: When Root Directory is `backend`, use `main:app` (not `backend.main:app`)
+3. **Important**: Leave **"Root Directory"** empty (project root)
+   - The start command uses `PYTHONPATH` to ensure Python can find the backend module
+4. The **"Start Command"** should be: `PYTHONPATH=/app python -m uvicorn backend.main:app --host 0.0.0.0 --port $PORT`
+   - Railway should auto-detect this from `railway.json`, but you can set it manually
 5. Go to **"Variables"** tab and add:
    ```
    RQ_QUEUE_NAME=pdf-analysis
@@ -47,8 +47,8 @@ In your Railway project dashboard:
 1. In the same Railway project, click **"+ New"** → **"GitHub Repo"**
 2. Select the same repository
 3. In the service settings:
-   - Set **"Root Directory"** to: `backend`
-   - Set **"Start Command"** to: `python -m worker`
+   - Leave **"Root Directory"** empty (project root)
+   - Set **"Start Command"** to: `PYTHONPATH=/app python -m backend.worker`
 4. Go to **"Variables"** tab and add the same variables as the API service:
    ```
    RQ_QUEUE_NAME=pdf-analysis
@@ -121,14 +121,14 @@ The app currently creates tables automatically. For production, consider using A
 
 ## Troubleshooting
 
-### Backend won't start / "uvicorn: command not found" / Python build conflicts
+### Backend won't start / "uvicorn: command not found" / "No module named 'backend'"
 
-- Make sure `Root Directory` is set to **`backend`** in Railway settings (NOT empty)
-- This prevents Railway from detecting Node.js and causing build conflicts
-- Check that `backend/nixpacks.toml` exists with the install commands
-- Check that the Start Command is: `python -m uvicorn main:app --host 0.0.0.0 --port $PORT`
-- Check build logs to ensure `pip install -r requirements.txt` ran successfully
-- If you see conflicts about multiple Python environments, ensure Root Directory is set to `backend`
+- Make sure `Root Directory` is **empty** (project root) in Railway settings
+- Check that `nixpacks.toml` exists in the project root with install commands
+- Check that the Start Command is: `PYTHONPATH=/app python -m uvicorn backend.main:app --host 0.0.0.0 --port $PORT`
+- The `PYTHONPATH=/app` ensures Python can find the `backend` module when running from project root
+- Check build logs to ensure `pip install -r backend/requirements.txt` ran successfully
+- If you see "No module named 'backend'", verify PYTHONPATH is set in the start command
 - Verify that `backend/requirements.txt` and `backend/runtime.txt` exist
 - Check that all environment variables are set correctly
 - Verify PostgreSQL and Redis services are running
