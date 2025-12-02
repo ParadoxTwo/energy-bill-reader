@@ -1,3 +1,3 @@
-web: python3 -m uvicorn main:app --host 0.0.0.0 --port $PORT
-worker: python3 -m worker
+web: python3 start_server.py
+worker: PYTHONPATH=/app python3 -m backend.worker
 
