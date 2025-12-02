@@ -29,8 +29,9 @@ In your Railway project dashboard:
 
 1. Click on your backend service (the one created from GitHub)
 2. Go to **"Settings"** tab
-3. Set **"Root Directory"** to: `backend` (if not already set)
-4. Set **"Start Command"** to: `uvicorn main:app --host 0.0.0.0 --port $PORT`
+3. **Important**: Leave **"Root Directory"** empty (or set to `/`) - we run from the project root
+4. The **"Start Command"** should be: `python -m uvicorn backend.main:app --host 0.0.0.0 --port $PORT`
+   - Railway should auto-detect this from `nixpacks.toml`, but you can set it manually if needed
 5. Go to **"Variables"** tab and add:
    ```
    RQ_QUEUE_NAME=pdf-analysis
@@ -45,7 +46,7 @@ In your Railway project dashboard:
 1. In the same Railway project, click **"+ New"** → **"GitHub Repo"**
 2. Select the same repository
 3. In the service settings:
-   - Set **"Root Directory"** to: `backend`
+   - Leave **"Root Directory"** empty (project root)
    - Set **"Start Command"** to: `python -m backend.worker`
 4. Go to **"Variables"** tab and add the same variables as the API service:
    ```
@@ -119,9 +120,12 @@ The app currently creates tables automatically. For production, consider using A
 
 ## Troubleshooting
 
-### Backend won't start
+### Backend won't start / "uvicorn: command not found"
 
-- Make sure `Root Directory` is set to `backend` in Railway settings
+- Make sure `Root Directory` is **empty** (project root) in Railway settings, NOT set to `backend`
+- Verify that `nixpacks.toml` exists in the project root
+- Check that the Start Command is: `python -m uvicorn backend.main:app --host 0.0.0.0 --port $PORT`
+- Check build logs to ensure `pip install -r backend/requirements.txt` ran successfully
 - Check that all environment variables are set correctly
 - Verify PostgreSQL and Redis services are running
 
