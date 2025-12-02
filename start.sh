@@ -12,5 +12,5 @@ for dir in /app /workspace "$(pwd)"; do
 done
 
 # Run uvicorn
-python -m uvicorn backend.main:app --host 0.0.0.0 --port "${PORT:-8000}"
+python3 -m uvicorn backend.main:app --host 0.0.0.0 --port "${PORT:-8000}"
 
