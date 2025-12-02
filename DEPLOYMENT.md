@@ -29,12 +29,12 @@ In your Railway project dashboard:
 
 1. Click on your backend service (the one created from GitHub)
 2. Go to **"Settings"** tab
-3. **CRITICAL**: Set **"Root Directory"** to: `backend`
-   - This prevents Railway from detecting Node.js and causing build conflicts
-   - Railway will only see Python files in the backend directory
-4. The **"Start Command"** should be: `python3 -m uvicorn main:app --host 0.0.0.0 --port $PORT`
-   - Note: When Root Directory is `backend`, use `main:app` (not `backend.main:app`)
+3. **Important**: Leave **"Root Directory"** empty (project root)
+   - The `start_server.py` script handles the Python path correctly
+   - The `nixpacks.toml` in the project root ensures Python is installed
+4. The **"Start Command"** should be: `python3 start_server.py`
    - Railway should auto-detect this from `railway.json`, but verify it's set correctly
+   - The `start_server.py` script automatically adds the project root to Python's path
 5. Go to **"Variables"** tab and add:
    ```
    RQ_QUEUE_NAME=pdf-analysis
@@ -49,8 +49,8 @@ In your Railway project dashboard:
 1. In the same Railway project, click **"+ New"** → **"GitHub Repo"**
 2. Select the same repository
 3. In the service settings:
-   - Set **"Root Directory"** to: `backend`
-   - Set **"Start Command"** to: `python3 -m worker`
+   - Leave **"Root Directory"** empty (project root)
+   - Set **"Start Command"** to: `PYTHONPATH=/app python3 -m backend.worker`
 4. Go to **"Variables"** tab and add the same variables as the API service:
    ```
    RQ_QUEUE_NAME=pdf-analysis
@@ -125,14 +125,13 @@ The app currently creates tables automatically. For production, consider using A
 
 ### Backend won't start / Build conflicts / "No module named 'backend'"
 
-- **CRITICAL**: Make sure `Root Directory` is set to **`backend`** in Railway settings (NOT empty)
-  - This prevents Railway from detecting Node.js and causing Python environment conflicts
-- Check that `backend/nixpacks.toml` exists with install commands
-- Check that the Start Command is: `python3 -m uvicorn main:app --host 0.0.0.0 --port $PORT`
-  - When Root Directory is `backend`, use `main:app` (not `backend.main:app`)
-- Check build logs to ensure `pip install -r requirements.txt` ran successfully
-- If you see conflicts about multiple Python environments, ensure Root Directory is set to `backend`
-- If you see "No module named 'backend'", verify Root Directory is set to `backend` and start command uses `main:app`
+- Make sure `Root Directory` is **empty** (project root) in Railway settings
+- Check that `nixpacks.toml` exists in the project root with install commands
+- Check that the Start Command is: `python3 start_server.py`
+  - The `start_server.py` script automatically handles Python path setup
+- Check build logs to ensure `pip install -r backend/requirements.txt` ran successfully
+- If you see conflicts about multiple Python environments, the `nixpacks.toml` should explicitly install Python 3
+- If you see "No module named 'backend'", verify that `start_server.py` is being used and exists in the project root
 - Verify that `backend/requirements.txt` and `backend/runtime.txt` exist
 - Check that all environment variables are set correctly
 - Verify PostgreSQL and Redis services are running
